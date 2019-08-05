@@ -3,7 +3,39 @@ import '../css/Auth.css';
 
 class Login extends Component {
 	render() {
-		return <div className="a">Test</div>;
+		return (
+			<div className="auth-wrap">
+				<div className="auth">
+					<div className="content-wrap">LOGO HERE</div>
+					<div className="content-wrap">
+						<div className="title">Sign in</div>
+					</div>
+					<div className="content-wrap">
+						<div className="subtitle">
+							to continue to Horizons Docs
+						</div>
+					</div>
+					<div className="content-wrap">
+						<input
+							className="input"
+							type="text"
+							placeholder="Email"
+						/>
+					</div>
+					<div className="content-wrap">
+						<input
+							className="input"
+							type="password"
+							placeholder="Password"
+						/>
+					</div>
+					<div className="content-wrap footer-wrap">
+						<div className="redirect">Create account</div>
+						<button className="button">Sign in</button>
+					</div>
+				</div>
+			</div>
+		);
 	}
 }
 

@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import Login from './Login';
+import Register from './Register';
 
 class TextApp extends Component {
 	render() {
-		return <Login />;
+		return <Register />;
 	}
 }
 
