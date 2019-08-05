@@ -2,11 +2,11 @@
 	"name": "collaborative-text-editor",
 	"version": "1.0.0",
 	"description": "A Desktop app that allows you to edit documents collaboratively.",
-	"main": "index.js",
+	"main": "app.js",
 	"scripts": {
-		"start": "node app/client/app",
-		"app": "electron app/client/app",
-		"dev": "nodemon app/client/app"
+		"start": "node app",
+		"app": "electron app",
+		"dev": "nodemon app"
 	},
 	"repository": {
 		"type": "git",
