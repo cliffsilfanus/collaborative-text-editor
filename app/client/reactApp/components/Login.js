@@ -1,10 +1,4 @@
-import React, { Component } from 'react';
-import '../css/Auth.css';
-
-class Login extends Component {
-	render() {
-		return <div className="" />;
-	}
-}
+import React, { Component } from "react";
+import "../css/Auth.css";
 
 export default Login;
