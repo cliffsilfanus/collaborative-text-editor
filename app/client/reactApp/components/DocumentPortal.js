@@ -7,7 +7,11 @@ class DocumentPortal extends Component {
     this.state = {
       newDocumentTitle: "",
       sharedDocID: "",
-      documents: [{ title: "Test", id: "test" }]
+      documents: [
+        { title: "Test", id: "test" },
+        { title: "My Document 2", id: "test" },
+        { title: "Todo List", id: "test" }
+      ]
     };
 
     this.handleTitleChange = this.handleTitleChange.bind(this);
@@ -34,27 +38,49 @@ class DocumentPortal extends Component {
 
   render() {
     return (
-      <>
-        <h1>Document Portal</h1>
-        <input
-          type="text"
-          value={this.state.newDocumentTitle}
-          onChange={this.handleTitleChange}
-        />
-        <button onClick={this.createNewDocument}>Create New Document</button>
-        <div>
-          My Documents
-          {this.state.documents.map(document => {
-            return <li>{document.title}</li>;
-          })}
+      <div className="wrapper">
+        <div className="portal">
+          <h1>Document Portal</h1>
+          <div className="content-wrap">
+            <input
+              className="input"
+              type="text"
+              value={this.state.newDocumentTitle}
+              onChange={this.handleTitleChange}
+              placeholder="New Document Title"
+            />
+            <button className="button" onClick={this.createNewDocument}>
+              +
+            </button>
+          </div>
+
+          <div className="documents">
+            <div className="title">My Documents</div>
+            <ul>
+              {this.state.documents.map(document => {
+                return (
+                  <li>
+                    <i className="icon fas fa-file-alt" />
+                    {document.title}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div className="content-wrap">
+            <input
+              className="input"
+              type="text"
+              value={this.state.sharedDocID}
+              onChange={this.handleIDChange}
+              placeholder="Shared Document ID"
+            />
+            <button className="button" onClick={this.addSharedDocument}>
+              +
+            </button>
+          </div>
         </div>
-        <input
-          type="text"
-          value={this.state.sharedDocID}
-          onChange={this.handleIDChange}
-        />
-        <button onClick={this.addSharedDocument}>Add Shared Document</button>
-      </>
+      </div>
     );
   }
 }
