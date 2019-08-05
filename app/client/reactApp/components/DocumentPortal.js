@@ -1,5 +1,8 @@
 import React, { Component } from "react";
+import { Redirect } from "react-router-dom";
 import "../css/documentPortal.css";
+
+const BACKEND = "";
 
 class DocumentPortal extends Component {
   constructor() {
@@ -9,13 +12,23 @@ class DocumentPortal extends Component {
       sharedDocID: "",
       documents: [
         { title: "Test", id: "test" },
-        { title: "My Document 2", id: "test" },
-        { title: "Todo List", id: "test" }
-      ]
+        { title: "My Document 2", id: "test1" },
+        { title: "Todo List", id: "test2" }
+      ],
+      redirect: false
     };
 
     this.handleTitleChange = this.handleTitleChange.bind(this);
     this.handleIDChange = this.handleIDChange.bind(this);
+    this.gotoDocument = this.gotoDocument.bind(this);
+  }
+
+  componentDidMount() {
+    fetch(BACKEND + "/docs")
+      .then(response => response.json())
+      .then(responseJson => {
+        this.setState({ documents: responseJson });
+      });
   }
 
   handleTitleChange(event) {
@@ -29,11 +42,27 @@ class DocumentPortal extends Component {
   createNewDocument(event) {
     event.preventDefault();
     console.log("Create new document.");
+    fetch(BACKEND + "/docs/new", {
+      method: "POST",
+      headers: {
+        "Content-Type": "applicaiotn/json"
+      },
+      body: JSON.stringify({
+        title: this.state.newDocumentTitle
+      })
+    })
+      .then(response => response.json())
+      .then(responseJson => console.log(responseJson));
   }
 
   addSharedDocument(event) {
     event.preventDefault();
     console.log("Add shared document.");
+    // post do /docs/shared
+  }
+
+  gotoDocument() {
+    this.setState({ redirect: true });
   }
 
   render() {
@@ -59,9 +88,12 @@ class DocumentPortal extends Component {
             <ul>
               {this.state.documents.map(document => {
                 return (
-                  <li>
+                  <li key={document.id} onClick={this.gotoDocument}>
                     <i className="icon fas fa-file-alt" />
                     {document.title}
+                    {this.state.redirect && (
+                      <Redirect to={"/docs/" + document.id} />
+                    )}
                   </li>
                 );
               })}
