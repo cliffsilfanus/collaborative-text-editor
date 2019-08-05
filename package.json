@@ -1,0 +1,22 @@
+{
+  "name": "collaborative-text-editor",
+  "version": "1.0.0",
+  "description": "A Desktop app that allows you to edit documents collaboratively.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cliffsilfanus/collaborative-text-editor.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cliffsilfanus/collaborative-text-editor/issues"
+  },
+  "homepage": "https://github.com/cliffsilfanus/collaborative-text-editor#readme",
+  "devDependencies": {
+    "electron": "^6.0.0"
+  }
+}
