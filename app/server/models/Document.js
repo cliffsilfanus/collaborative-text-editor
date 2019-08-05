@@ -3,9 +3,6 @@
 //requiring mongoose
 var mongoose = require("mongoose");
 
-var connect = process.env.MONGODB_URI;
-mongoose.connect(connect);
-
 var documentSchema = new mongoose.Schema({
   author: {
     type: mongoose.Schema.ObjectId,
@@ -23,6 +20,4 @@ var documentSchema = new mongoose.Schema({
 });
 
 var Document = mongoose.model("Document", documentSchema);
-module.exports = {
-  Document: Document
-};
+module.exports = Document;

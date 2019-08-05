@@ -4,10 +4,7 @@
 
 var mongoose = require("mongoose");
 
-var connect = process.env.MONGODB_URI;
-mongoose.connect(connect);
-
-var userSchema = new mongoose.schema({
+var userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true
@@ -27,6 +24,4 @@ var userSchema = new mongoose.schema({
 
 var User = mongoose.model("User", userSchema);
 
-module.exports = {
-  User: User
-};
+module.exports = User;
