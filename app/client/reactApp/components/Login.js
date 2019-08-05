@@ -1,8 +1,10 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React, { Component } from 'react';
+import '../css/Auth.css';
 
-const Login = props => {
-    return ()
-};
+class Login extends Component {
+	render() {
+		return <div className="" />;
+	}
+}
 
 export default Login;
