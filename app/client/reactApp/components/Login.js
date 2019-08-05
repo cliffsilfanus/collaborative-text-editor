@@ -61,7 +61,7 @@ class Login extends Component {
 
 	renderErr = errMsg => {
 		return (
-			<div className="content-wrap err-wrap">
+			<div className="auth-content-wrap auth-err-wrap">
 				<svg
 					width="16px"
 					height="16px"
@@ -71,7 +71,7 @@ class Login extends Component {
 					<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
 					<path d="M0 0h24v24H0z" fill="none" />
 				</svg>
-				<div className="err-msg">{errMsg}</div>
+				<div className="auth-err-msg">{errMsg}</div>
 			</div>
 		);
 	};
@@ -80,21 +80,21 @@ class Login extends Component {
 		return (
 			<div className="auth-wrap">
 				<div className="auth">
-					<div className="content-wrap">LOGO HERE</div>
-					<div className="content-wrap">
-						<div className="title">Sign in</div>
+					<div className="auth-content-wrap">LOGO HERE</div>
+					<div className="auth-content-wrap">
+						<div className="auth-title">Sign in</div>
 					</div>
-					<div className="content-wrap">
-						<div className="subtitle">
+					<div className="auth-content-wrap">
+						<div className="auth-subtitle">
 							to continue to Horizons Docs
 						</div>
 					</div>
-					<div className="content-wrap">
+					<div className="auth-content-wrap">
 						<input
 							className={
 								this.state.noUname || this.state.wrongAuth
-									? 'input input-err'
-									: 'input'
+									? 'auth-input auth-input-err'
+									: 'auth-input'
 							}
 							type="text"
 							placeholder="Email"
@@ -103,12 +103,12 @@ class Login extends Component {
 						/>
 					</div>
 					{this.state.noUname && this.renderErr('Enter an email')}
-					<div className="content-wrap">
+					<div className="auth-content-wrap">
 						<input
 							className={
 								this.state.noPword || this.state.wrongAuth
-									? 'input input-err'
-									: 'input'
+									? 'auth-input auth-input-err'
+									: 'auth-input'
 							}
 							type="password"
 							placeholder="Password"
@@ -119,11 +119,11 @@ class Login extends Component {
 					{this.state.noPword && this.renderErr('Enter a password')}
 					{this.state.wrongAuth &&
 						this.renderErr("Couldn't find your account")}
-					<div className="content-wrap footer-wrap">
-						<Link to="/register" className="noLinkStyle">
-							<div className="redirect">Create account</div>
+					<div className="auth-content-wrap auth-footer-wrap">
+						<Link to="/register" className="auth-noLinkStyle">
+							<div className="auth-redirect">Create account</div>
 						</Link>
-						<button className="button" onClick={this.submit}>
+						<button className="auth-button" onClick={this.submit}>
 							Sign in
 						</button>
 					</div>
