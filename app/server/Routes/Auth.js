@@ -87,7 +87,7 @@ app.post("/login", (req, res) => {
     //database error
     if (err) {
       console.log(err);
-      return res.json({ error: true, message: "ERROR WHILE FINDING " + err });
+      return res.status(401).json({ error: true, message: "ERROR WHILE FINDING " + err });
     }
     //passwords dont match
     if (!user || user.password !== password) {
@@ -124,6 +124,35 @@ app.post("/logout", function(req, res, next) {
 //   res.send("ok!");
 //   return;
 // });
+
+app.post("/docs/new", (req, res) => {
+  /////
+  var doc = new Document({
+    author: req.user._id,
+    collaborators: [req.user._id],
+    title: req.body.title,
+    password: req.body.password
+  });
+  doc.save((err, documents) => {
+    //saves the documents to the database
+    if (err) {
+      console.log(err);
+      return res.status(401).json({ error: true, message: "ERROR WHILE FINDING DOCUMENT " + err });
+    }
+    //when saving we return with a json respresentation of the documents
+    res.json({ error: false });
+  });
+});
+
+app.get("/docs", (req, res) => {
+  // Route that sends all the docs
+  models.Document.find({ user: req.user }, (err, docs) => {
+    if (err) {
+      console.log("ERROR FINDING TH DOCS IN THE DATABASE");
+    }
+    return res.status(200).json({ error: false, docs: docs });
+  });
+});
 
 app.use(function(req, res, next) {
   var err = new Error("Not Found");

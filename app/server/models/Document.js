@@ -15,7 +15,11 @@ var documentSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: false
+    required: true
+  },
+  title: {
+    type: String,
+    required: true
   }
 });
 
