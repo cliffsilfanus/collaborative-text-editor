@@ -1,3 +1,7 @@
+/*
+SERVER SETUP FOR COLLOABORATIVE_TEXT_EDITOR
+
+*/
 var express = require("express");
 var session = require("express-session");
 var path = require("path");
@@ -8,17 +12,16 @@ var passport = require("passport");
 var LocalStrategy = require("passport-local").Strategy;
 var models = require("..models"); ////\\\\\
 var auth = require("./Auth");
+// Database imports below
 var MongoStore = require("connect-mongo")(session);
 var mongoose = require("mongoose");
 var _ = require("underscore");
-//\\ Make sure you are importing everything correctly
-//\\ missing cookie parser..not sure we need
+
 var app = express();
 
 // view engine setup
 app.set("components", path.join(__dirname, "views"));
 app.set("view engine", "hbs");
-/// CHECK ////\\\\
 
 app.use(logger("dev"));
 app.use(bodyParser.json());
@@ -76,7 +79,7 @@ passport.use(
   })
 );
 
-app.use("/", auth(passport));
+app.use("/", auth(passport)); //how we are physically passing passport
 app.use("/", routes);
 
 // catch 404 and forward to error handler
@@ -85,8 +88,6 @@ app.use(function(req, res, next) {
   err.status = 404;
   next(err);
 });
-
-// // error handlers
 
 // development error handler
 // will print stacktrace
@@ -108,4 +109,9 @@ app.use(function(err, req, res, next) {
     message: err.message,
     error: {}
   });
+});
+
+const port = process.env.port || 3000;
+app.listen(port, function() {
+  console.log("Listening on %s", port);
 });
