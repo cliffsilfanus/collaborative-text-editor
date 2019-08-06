@@ -21,6 +21,7 @@ var documentSchema = new mongoose.Schema({
     type: String,
     required: true
   }
+  // NEED TO ADD THE DOCUMENTS CONTENT
 });
 
 var Document = mongoose.model("Document", documentSchema);
