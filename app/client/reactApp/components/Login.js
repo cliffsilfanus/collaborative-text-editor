@@ -2,7 +2,11 @@ import React, { Component } from "react";
 import "../css/Auth.css";
 import { Link, Redirect } from "react-router-dom";
 
+<<<<<<< HEAD
 const BACKEND = "http://192.168.1.45:3000";
+=======
+const BACKEND = 'https://6b03cea8.ngrok.io';
+>>>>>>> 45918083718dde657a36cad8f6514d2f59266f66
 
 class Login extends Component {
   constructor(props) {
@@ -25,39 +29,41 @@ class Login extends Component {
     this.setState({ password: event.target.value });
   };
 
-  submit = () => {
-    if (!this.state.username || !this.state.password) {
-      this.setState({
-        noUname: !this.state.username,
-        noPword: !this.state.password,
-        wrongAuth: false
-      });
-      return;
-    }
-    fetch(BACKEND + "/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        email: this.state.username,
-        password: this.state.password
-      })
-    })
-      .then(res => res.json())
-      .then(res => {
-        if (res.error) {
-          this.setState({
-            noUname: false,
-            noPword: false,
-            wrongAuth: true
-          });
-        } else {
-          this.setState({ redirect: true });
-        }
-      })
-      .catch(err => console.log(err));
-  };
+	submit = () => {
+		if (!this.state.username || !this.state.password) {
+			this.setState({
+				noUname: !this.state.username,
+				noPword: !this.state.password,
+				wrongAuth: false
+			});
+			return;
+		}
+		fetch(BACKEND + '/login', {
+			method: 'POST',
+			mode: 'cors',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				email: this.state.username,
+				password: this.state.password
+			})
+		})
+			.then(res => res.json())
+			.then(res => {
+				if (res.error) {
+					this.setState({
+						noUname: false,
+						noPword: false,
+						wrongAuth: true
+					});
+				} else {
+					this.setState({ redirect: true });
+				}
+			})
+			.catch(err => console.log(err));
+	};
 
   renderErr = errMsg => {
     return (
@@ -71,18 +77,20 @@ class Login extends Component {
     );
   };
 
-  componentDidMount = () => {
-    fetch(BACKEND + "/login", {
-      method: "GET"
-    })
-      .then(res => res.json())
-      .then(res => {
-        if (!res.error && res.isLogged) {
-          this.setState({ redirect: true });
-        }
-      })
-      .catch(err => console.log(err));
-  };
+	componentDidMount = () => {
+		fetch(BACKEND + '/login', {
+			method: 'GET',
+			mode: 'cors',
+			credentials: 'include'
+		})
+			.then(res => res.json())
+			.then(res => {
+				if (!res.error && res.isLogged) {
+					this.setState({ redirect: true });
+				}
+			})
+			.catch(err => console.log(err));
+	};
 
   render() {
     return (
