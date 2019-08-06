@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Redirect } from "react-router-dom";
 import "../css/documentPortal.css";
 
-const BACKEND = "http://192.168.1.45:3000";
+const BACKEND = "https://613cbc44.ngrok.io";
 
 class DocumentPortal extends Component {
   constructor() {
@@ -12,17 +12,20 @@ class DocumentPortal extends Component {
       newDocumentPassword: "",
       sharedDocumentID: "",
       sharedDocumentPassword: "",
-      documents: [
-        { title: "Test", id: "test" },
-        { title: "My Document 2", id: "test1" },
-        { title: "Todo List", id: "test2" }
-      ],
+      documents: [],
       redirect: false
     };
   }
 
   componentDidMount() {
-    fetch(BACKEND + "/docs")
+    fetch(BACKEND + "/docs", {
+      method: "GET",
+      mode: "cors",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
       .then(response => response.json())
       .then(responseJson => {
         this.setState({ documents: responseJson.docs });
@@ -47,31 +50,53 @@ class DocumentPortal extends Component {
 
   createNewDocument = event => {
     event.preventDefault();
-    console.log("Create new document.");
+    console.log(this.state.newDocumentTitle, this.state.newDocumentPassword);
     fetch(BACKEND + "/docs/new", {
       method: "POST",
       mode: "cors",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
         title: this.state.newDocumentTitle,
         password: this.state.newDocumentPassword
       })
     })
       .then(response => response.json())
-      .then(responseJson => console.log(responseJson));
+      .then(responseJson => {
+        this.setState({
+          documents: this.state.documents.concat({
+            title: responseJson.title,
+            id: responseJson.id
+          })
+        });
+      });
   };
 
   addSharedDocument = event => {
     event.preventDefault();
-    console.log("Add shared document.");
     fetch(BACKEND + "/docs/shared", {
       method: "POST",
+      mode: "cors",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
         id: this.state.sharedDocumentID,
         password: this.state.sharedDocumentPassword
       })
     })
       .then(response => response.json())
-      .then(responseJson => console.log(responseJson));
+      .then(responseJson => {
+        this.setState({
+          documents: this.state.documents.concat({
+            title: responseJson.title,
+            id: responseJson.id
+          })
+        });
+      });
   };
 
   gotoDocument = () => {
