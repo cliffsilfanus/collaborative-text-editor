@@ -1,13 +1,4 @@
 import React, { Component } from "react";
-<<<<<<< HEAD
-import TextEditor from "./TextEditor";
-
-export default class TextApp extends Component {
-  render() {
-    return <TextEditor />;
-  }
-}
-=======
 import Login from "./Login";
 import Register from "./Register";
 import DocumentPortal from "./DocumentPortal";
@@ -26,4 +17,3 @@ class TextApp extends Component {
 }
 
 export default TextApp;
->>>>>>> 833bf664ab72804c21699a133c85c6afbe3daae9
