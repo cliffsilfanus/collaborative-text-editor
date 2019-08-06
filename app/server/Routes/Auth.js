@@ -147,7 +147,6 @@ app.post("/logout", function(req, res, next) {
 
 app.post("/docs/new", (req, res) => {
   /////
-  console.log(req.body);
   var doc = new models.Document({
     author: req.session.user._id,
     collaborators: [req.session.user._id],
@@ -158,19 +157,40 @@ app.post("/docs/new", (req, res) => {
     //saves the documents to the database
     if (err) {
       console.log(err);
-      return res.status(401).json({ error: true, message: "ERROR WHILE FINDING DOCUMENT " + err });
+      return res.status(401).json({ error: true, message: "ERROR WHILE SAVING DOCUMENT " + err });
     }
     //when saving we return with a json respresentation of the documents
-    res.json({ error: false, document });
+    res.json({ error: false, title: document.title, id: document._id });
+  });
+});
+
+app.post("/docs/shared", (req, res) => {
+  models.Document.findById(req.body.id, (err, document) => {
+    if (err) {
+      console.log(err);
+      return res
+        .status(401)
+        .json({ error: true, message: "ERROR WHILE FINDING DOCUMENT to COLLABORATE " + err });
+    }
+    if (req.body.password === document.password) {
+      res.json({ error: false, success: true, title: document.title, id: document._id });
+      // send the document title and id
+    } else {
+      res.json({ error: false, success: false });
+    }
   });
 });
 
 app.get("/docs", (req, res) => {
   // Route that sends all the docs
-  models.Document.find({ user: req.session.user }, (err, docs) => {
+  models.Document.find({ collaborators: req.session.user._id }, (err, docs) => {
     if (err) {
       console.log("ERROR FINDING TH DOCS IN THE DATABASE");
     }
+    //map through the docs and only get certain infromation \\//
+    docs = docs.map(document => {
+      return { title: document.title, id: document._id };
+    });
     return res.status(200).json({ error: false, docs: docs });
   });
 });
