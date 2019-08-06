@@ -2,14 +2,16 @@ import React, { Component } from "react";
 import { Redirect } from "react-router-dom";
 import "../css/documentPortal.css";
 
-const BACKEND = "";
+const BACKEND = "http://192.168.1.45:3000";
 
 class DocumentPortal extends Component {
   constructor() {
     super();
     this.state = {
       newDocumentTitle: "",
-      sharedDocID: "",
+      newDocumentPassword: "",
+      sharedDocumentID: "",
+      sharedDocumentPassword: "",
       documents: [
         { title: "Test", id: "test" },
         { title: "My Document 2", id: "test1" },
@@ -17,35 +19,39 @@ class DocumentPortal extends Component {
       ],
       redirect: false
     };
-
-    this.handleTitleChange = this.handleTitleChange.bind(this);
-    this.handleIDChange = this.handleIDChange.bind(this);
-    this.gotoDocument = this.gotoDocument.bind(this);
   }
 
   componentDidMount() {
     fetch(BACKEND + "/docs")
       .then(response => response.json())
       .then(responseJson => {
-        this.setState({ documents: responseJson });
+        this.setState({ documents: responseJson.docs });
       });
   }
 
-  handleTitleChange(event) {
+  handleTitleChange = event => {
     this.setState({ newDocumentTitle: event.target.value });
-  }
+  };
 
-  handleIDChange(event) {
-    this.setState({ sharedDocID: event.target.value });
-  }
+  handleNewDocumentPasswordChange = event => {
+    this.setState({ newDocumentPassword: event.target.value });
+  };
 
-  createNewDocument(event) {
+  handleSharedDocumentPasswordChange = event => {
+    this.setState({ sharedDocumentPassword: event.target.value });
+  };
+
+  handleIDChange = event => {
+    this.setState({ sharedDocumentID: event.target.value });
+  };
+
+  createNewDocument = event => {
     event.preventDefault();
     console.log("Create new document.");
     fetch(BACKEND + "/docs/new", {
       method: "POST",
       headers: {
-        "Content-Type": "applicaiotn/json"
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         title: this.state.newDocumentTitle
@@ -53,7 +59,7 @@ class DocumentPortal extends Component {
     })
       .then(response => response.json())
       .then(responseJson => console.log(responseJson));
-  }
+  };
 
   addSharedDocument(event) {
     event.preventDefault();
@@ -61,9 +67,9 @@ class DocumentPortal extends Component {
     // post do /docs/shared
   }
 
-  gotoDocument() {
+  gotoDocument = () => {
     this.setState({ redirect: true });
-  }
+  };
 
   render() {
     return (
@@ -77,6 +83,13 @@ class DocumentPortal extends Component {
               value={this.state.newDocumentTitle}
               onChange={this.handleTitleChange}
               placeholder="New Document Title"
+            />
+            <input
+              className="input"
+              type="text"
+              value={this.state.newDocumentPassword}
+              onChange={this.handleNewDocumentPasswordChange}
+              placeholder="Password"
             />
             <button className="button" onClick={this.createNewDocument}>
               +
@@ -103,9 +116,16 @@ class DocumentPortal extends Component {
             <input
               className="input"
               type="text"
-              value={this.state.sharedDocID}
+              value={this.state.sharedDocumentID}
               onChange={this.handleIDChange}
               placeholder="Shared Document ID"
+            />
+            <input
+              className="input"
+              type="text"
+              value={this.state.sharedDocumentPassword}
+              onChange={this.handleSharedDocumentPasswordChange}
+              placeholder="Password"
             />
             <button className="button" onClick={this.addSharedDocument}>
               +
