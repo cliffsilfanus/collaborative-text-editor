@@ -1,5 +1,6 @@
 /*
 SERVER SETUP FOR COLLOABORATIVE_TEXT_EDITOR
+THIS IS THE BACKEND FILE
 
 */
 var express = require("express");
@@ -105,6 +106,18 @@ app.post("/login", (req, res) => {
   });
 });
 
+//ALREADY LOGGED IN ROUTE \\//
+
+app.get("/login", (req, res) => {
+  // gonna go into database and find the session
+  if (req.session) {
+    //already a session going
+    res.status(200).json({ error: false, isLogged: true });
+  } else {
+    res.status(200).json({ error: false, isLogged: false });
+  }
+});
+
 // GET Logout page
 app.post("/logout", function(req, res, next) {
   // lOGS USER OUT
@@ -127,7 +140,7 @@ app.post("/logout", function(req, res, next) {
 
 app.post("/docs/new", (req, res) => {
   /////
-  var doc = new Document({
+  var doc = new models.Document({
     author: req.user._id,
     collaborators: [req.user._id],
     title: req.body.title,
