@@ -13,7 +13,8 @@ class DocumentPortal extends Component {
       sharedDocumentID: "",
       sharedDocumentPassword: "",
       documents: [],
-      redirect: false
+      redirect: false,
+      err: ""
     };
   }
 
@@ -48,6 +49,24 @@ class DocumentPortal extends Component {
     this.setState({ sharedDocumentID: event.target.value });
   };
 
+  renderErr = errMsg => {
+    return (
+      <div className="auth-content-wrap auth-err-wrap">
+        <svg
+          style={{ marginLeft: "5px" }}
+          width="16px"
+          height="16px"
+          viewBox="0 0 24 24"
+          fill="#d93025"
+        >
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+          <path d="M0 0h24v24H0z" fill="none" />
+        </svg>
+        <div className="auth-err-msg">{errMsg}</div>
+      </div>
+    );
+  };
+
   createNewDocument = event => {
     event.preventDefault();
     console.log(this.state.newDocumentTitle, this.state.newDocumentPassword);
@@ -65,12 +84,16 @@ class DocumentPortal extends Component {
     })
       .then(response => response.json())
       .then(responseJson => {
-        this.setState({
-          documents: this.state.documents.concat({
-            title: responseJson.title,
-            id: responseJson.id
-          })
-        });
+        if (responseJson.success) {
+          this.setState({
+            documents: this.state.documents.concat({
+              title: responseJson.title,
+              id: responseJson.id
+            }),
+            newDocumentTitle: "",
+            newDocumentPassword: ""
+          });
+        }
       });
   };
 
@@ -90,12 +113,21 @@ class DocumentPortal extends Component {
     })
       .then(response => response.json())
       .then(responseJson => {
-        this.setState({
-          documents: this.state.documents.concat({
-            title: responseJson.title,
-            id: responseJson.id
-          })
-        });
+        console.log(responseJson);
+        if (responseJson.error) {
+          this.setState({ err: responseJson.message });
+        } else if (responseJson.success) {
+          this.setState({
+            documents: this.state.documents.concat({
+              title: responseJson.title,
+              id: responseJson.id
+            }),
+            sharedDocumentID: "",
+            sharedDocumentPassword: ""
+          });
+        } else {
+          this.setState({ err: responseJson.message });
+        }
       });
   };
 
@@ -163,6 +195,7 @@ class DocumentPortal extends Component {
               +
             </button>
           </div>
+          {this.state.err && this.renderErr(this.state.err)}
         </div>
       </div>
     );
