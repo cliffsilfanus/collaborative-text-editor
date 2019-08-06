@@ -1,3 +1,8 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
+import TextEditor from "./TextEditor";
 
-class TextApp extends Component {}
+export default class TextApp extends Component {
+  render() {
+    return <TextEditor />;
+  }
+}
