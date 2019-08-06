@@ -52,12 +52,6 @@ app.use(
   })
 );
 
-// app.use(function(req, res, next) {
-//   res.header("Access-Control-Allow-Origin", "http://localhost:8080"); // update to match the domain you will make the request from
-//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//   next();
-// });
-
 //MIDDLEWARE
 var validateLoggedIn = (req, res, next) => {
   if (!req.session.user) {
@@ -94,7 +88,6 @@ app.post("/signup", function(req, res) {
       console.log(err);
       return res.json({ error: true, message: "Error saving to the database" });
     }
-    console.log(user);
     res.json({ error: false, user: user });
   });
 });
@@ -126,7 +119,6 @@ app.post("/login", (req, res) => {
     //all the stuff we store in the database
     // sets the user on the session
     req.session.user = user;
-    console.log(req.session);
     return res.json({
       error: false
     });
@@ -135,9 +127,7 @@ app.post("/login", (req, res) => {
 
 //ALREADY LOGGED IN ROUTE \\//
 app.get("/login", (req, res) => {
-  console.log(req.session);
   //user persistence
-  console.log(res);
   res.status(200).json({ error: false, isLogged: Boolean(req.session.user) });
 });
 
@@ -155,28 +145,23 @@ app.post("/logout", function(req, res, next) {
   }
 });
 
-// app.get("/test", validateLoggedIn, (req, res) => {
-//   console.log(req.session.user);
-//   res.send("ok!");
-//   return;
-// });
-
 app.post("/docs/new", (req, res) => {
   /////
+  console.log(req.body);
   var doc = new models.Document({
     author: req.session.user._id,
-    collaborators: [req.sessions.user._id],
+    collaborators: [req.session.user._id],
     title: req.body.title,
     password: req.body.password
   });
-  doc.save((err, documents) => {
+  doc.save((err, document) => {
     //saves the documents to the database
     if (err) {
       console.log(err);
       return res.status(401).json({ error: true, message: "ERROR WHILE FINDING DOCUMENT " + err });
     }
     //when saving we return with a json respresentation of the documents
-    res.json({ error: false });
+    res.json({ error: false, document });
   });
 });
 
