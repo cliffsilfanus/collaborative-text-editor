@@ -8,7 +8,7 @@ var router = express.Router();
 var models = require("../models");
 var logger = require("morgan");
 var path = require("path");
-var cookieParser = require("cookie-parser");
+// var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
 var session = require("express-session");
 var MongoStore = require("connect-mongo")(session);
@@ -18,26 +18,46 @@ var cors = require("cors");
 
 var app = express();
 
+const whitelist = ["http://localhost:8080"];
+app.use(
+  cors({
+    origin: function(origin, callback) {
+      console.log(origin);
+      if (whitelist.indexOf(origin) !== -1 || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true
+  })
+);
+
 // view engine setup
 app.set("components", path.join(__dirname, "views"));
-app.set("view engine", "hbs");
+// app.set("view engine", "hbs");
 
 app.use(logger("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, "../../client/build"))); //check
-app.use(cors());
+app.use(express.static(path.join(__dirname, "../../client/build")));
 
 app.use(
   session({
     secret: process.env.SECRET,
-    name: "cookie",
     store: new MongoStore({ mongooseConnection: mongoose.connection }), // this is where we r storing our session info in the mongo database
     proxy: true,
     saveUninitialized: true,
     resave: true
   })
 );
+
+// app.use(function(req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "http://localhost:8080"); // update to match the domain you will make the request from
+//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//   next();
+// });
+
 //MIDDLEWARE
 var validateLoggedIn = (req, res, next) => {
   if (!req.session.user) {
@@ -88,34 +108,37 @@ app.post("/login", (req, res) => {
     //database error
     if (err) {
       console.log(err);
-      return res.status(401).json({ error: true, message: "ERROR WHILE FINDING " + err });
+      return res.status(401).json({
+        error: true,
+        message: "ERROR WHILE FINDING " + err
+      });
     }
     //passwords dont match
     if (!user || user.password !== password) {
       res.status(401);
       console.log("passwords dont match");
-      return res.json({ error: true, message: err });
+      return res.json({
+        error: true,
+        message: err
+      });
     }
-    //defualt case
-    //user._id
-    //user.email
+
     //all the stuff we store in the database
-    req.session.user = user; // sets the user on the session
-    // how to know if someon is logged in or not  //\\
-    return res.json({ error: false, user: user });
+    // sets the user on the session
+    req.session.user = user;
+    console.log(req.session);
+    return res.json({
+      error: false
+    });
   });
 });
 
 //ALREADY LOGGED IN ROUTE \\//
-
 app.get("/login", (req, res) => {
-  // gonna go into database and find the session
-  if (req.session) {
-    //already a session going
-    res.status(200).json({ error: false, isLogged: true });
-  } else {
-    res.status(200).json({ error: false, isLogged: false });
-  }
+  console.log(req.session);
+  //user persistence
+  console.log(res);
+  res.status(200).json({ error: false, isLogged: Boolean(req.session.user) });
 });
 
 // GET Logout page
@@ -141,8 +164,8 @@ app.post("/logout", function(req, res, next) {
 app.post("/docs/new", (req, res) => {
   /////
   var doc = new models.Document({
-    author: req.user._id,
-    collaborators: [req.user._id],
+    author: req.session.user._id,
+    collaborators: [req.sessions.user._id],
     title: req.body.title,
     password: req.body.password
   });
@@ -159,7 +182,7 @@ app.post("/docs/new", (req, res) => {
 
 app.get("/docs", (req, res) => {
   // Route that sends all the docs
-  models.Document.find({ user: req.user }, (err, docs) => {
+  models.Document.find({ user: req.session.user }, (err, docs) => {
     if (err) {
       console.log("ERROR FINDING TH DOCS IN THE DATABASE");
     }

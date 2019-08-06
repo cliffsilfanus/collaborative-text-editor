@@ -2,7 +2,7 @@
   "name": "server",
   "version": "1.0.0",
   "description": "Horizons docs server",
-  "main": "routes/index.js",
+  "main": "routes/auth.js",
   "scripts": {
     "test": "npm run routes/auth.js",
     "dev": "nodemon run routes/auth.js"
