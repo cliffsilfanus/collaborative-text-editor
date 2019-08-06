@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import '../css/Auth.css';
 import { Link, Redirect } from 'react-router-dom';
 
-const BACKEND = 'http://192.168.1.45:3000';
+const BACKEND = 'https://6b03cea8.ngrok.io';
 
 class Login extends Component {
 	constructor(props) {
@@ -36,6 +36,8 @@ class Login extends Component {
 		}
 		fetch(BACKEND + '/login', {
 			method: 'POST',
+			mode: 'cors',
+			credentials: 'include',
 			headers: {
 				'Content-Type': 'application/json'
 			},
@@ -78,7 +80,9 @@ class Login extends Component {
 
 	componentDidMount = () => {
 		fetch(BACKEND + '/login', {
-			method: 'GET'
+			method: 'GET',
+			mode: 'cors',
+			credentials: 'include'
 		})
 			.then(res => res.json())
 			.then(res => {
