@@ -76,6 +76,19 @@ class Login extends Component {
 		);
 	};
 
+	componentDidMount = () => {
+		fetch(BACKEND + '/login', {
+			method: 'GET'
+		})
+			.then(res => res.json())
+			.then(res => {
+				if (!res.error && res.isLogged) {
+					this.setState({ redirect: true });
+				}
+			})
+			.catch(err => console.log(err));
+	};
+
 	render() {
 		return (
 			<div className="auth-wrap">
