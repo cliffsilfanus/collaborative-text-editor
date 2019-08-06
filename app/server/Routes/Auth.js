@@ -22,7 +22,6 @@ const whitelist = ["http://localhost:8080"];
 app.use(
   cors({
     origin: function(origin, callback) {
-      console.log(origin);
       if (whitelist.indexOf(origin) !== -1 || !origin) {
         callback(null, true);
       } else {
@@ -53,6 +52,15 @@ app.use(
 );
 
 //MIDDLEWARE
+var unless = (path, middleware) => {
+  return (req, res, next) => {
+    if (path.includes(req.path)) {
+      return next();
+    }
+    return middleware(req, res, next);
+  };
+};
+
 var validateLoggedIn = (req, res, next) => {
   if (!req.session.user) {
     res.status(401).json({ error: true, message: "NOT LOGGED IN" });
@@ -61,6 +69,8 @@ var validateLoggedIn = (req, res, next) => {
     next();
   }
 };
+
+app.use(unless(["/", "/login", "/signup"], validateLoggedIn));
 
 // POST registration page
 var validateReq = function(userData) {
@@ -168,15 +178,17 @@ app.post("/docs/shared", (req, res) => {
   models.Document.findById(req.body.id, (err, document) => {
     if (err) {
       console.log(err);
-      return res
-        .status(401)
-        .json({ error: true, message: "ERROR WHILE FINDING DOCUMENT to COLLABORATE " + err });
+      return res.status(401).json({ error: true, message: "Invalid document ID" });
     }
     if (req.body.password === document.password) {
-      res.json({ error: false, success: true, title: document.title, id: document._id });
+      if (document.collaborators.includes(req.session.user._id)) {
+        res.json({ error: false, success: false, message: "Already a collaborator" });
+      } else {
+        res.json({ error: false, success: true, title: document.title, id: document._id });
+      }
       // send the document title and id
     } else {
-      res.json({ error: false, success: false });
+      res.json({ error: false, success: false, message: "Invalid document password" });
     }
   });
 });
