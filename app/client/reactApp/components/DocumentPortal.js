@@ -50,22 +50,29 @@ class DocumentPortal extends Component {
     console.log("Create new document.");
     fetch(BACKEND + "/docs/new", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      mode: "cors",
       body: JSON.stringify({
-        title: this.state.newDocumentTitle
+        title: this.state.newDocumentTitle,
+        password: this.state.newDocumentPassword
       })
     })
       .then(response => response.json())
       .then(responseJson => console.log(responseJson));
   };
 
-  addSharedDocument(event) {
+  addSharedDocument = event => {
     event.preventDefault();
     console.log("Add shared document.");
-    // post do /docs/shared
-  }
+    fetch(BACKEND + "/docs/shared", {
+      method: "POST",
+      body: JSON.stringify({
+        id: this.state.sharedDocumentID,
+        password: this.state.sharedDocumentPassword
+      })
+    })
+      .then(response => response.json())
+      .then(responseJson => console.log(responseJson));
+  };
 
   gotoDocument = () => {
     this.setState({ redirect: true });
@@ -86,7 +93,7 @@ class DocumentPortal extends Component {
             />
             <input
               className="input"
-              type="text"
+              type="password"
               value={this.state.newDocumentPassword}
               onChange={this.handleNewDocumentPasswordChange}
               placeholder="Password"
@@ -122,7 +129,7 @@ class DocumentPortal extends Component {
             />
             <input
               className="input"
-              type="text"
+              type="password"
               value={this.state.sharedDocumentPassword}
               onChange={this.handleSharedDocumentPasswordChange}
               placeholder="Password"
