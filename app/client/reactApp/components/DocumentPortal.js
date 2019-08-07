@@ -168,9 +168,7 @@ class DocumentPortal extends Component {
                   <li key={document.id} onClick={this.gotoDocument}>
                     <i className="icon fas fa-file-alt" />
                     {document.title}
-                    {this.state.redirect && (
-                      <Redirect to={"/docs/" + document.id} />
-                    )}
+                    {this.state.redirect && <Redirect to={"/docs/" + document.id} />}
                   </li>
                 );
               })}
