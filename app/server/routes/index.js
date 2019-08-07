@@ -1,32 +1,49 @@
+/*
+SERVER SETUP FOR COLLOABORATIVE_TEXT_EDITOR
+THIS IS THE BACKEND FILE
+
+*/
 var express = require("express");
-var session = require("express-session");
-var path = require("path");
+var app = express();
+var models = require("../models");
 var logger = require("morgan");
-var cookieParser = require("cookie-parser");
+var path = require("path");
+// var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
-var LocalStrategy = require("passport-local").Strategy;
-var models = require("../models"); ////\\\\\
-var auth = require("./auth");
-// Database imports below
+var session = require("express-session");
 var MongoStore = require("connect-mongo")(session);
 var mongoose = require("mongoose");
+var server = require("http").Server(app);
+var io = require("socket.io")(server);
 var _ = require("underscore");
+var cors = require("cors");
 
-var app = express();
+const whitelist = ["http://localhost:8080"];
+app.use(
+  cors({
+    origin: function(origin, callback) {
+      if (whitelist.indexOf(origin) !== -1 || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true
+  })
+);
 
 // view engine setup
 app.set("components", path.join(__dirname, "views"));
-app.set("view engine", "hbs");
+// app.set("view engine", "hbs");
 
 app.use(logger("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, "../../client/build"))); //check
+app.use(express.static(path.join(__dirname, "../../client/build")));
 
 app.use(
   session({
     secret: process.env.SECRET,
-    name: "cookie",
     store: new MongoStore({ mongooseConnection: mongoose.connection }), // this is where we r storing our session info in the mongo database
     proxy: true,
     saveUninitialized: true,
@@ -34,78 +51,174 @@ app.use(
   })
 );
 
-// // Initialize Passport
-// app.use(passport.initialize());
-// app.use(passport.session());
+//MIDDLEWARE
+var unless = (path, middleware) => {
+  return (req, res, next) => {
+    if (path.includes(req.path)) {
+      return next();
+    }
+    return middleware(req, res, next);
+  };
+};
 
-// Passport Serialize
-// passport.serializeUser((user, done) => {
-//   done(null, user._id);
-// });
+var validateLoggedIn = (req, res, next) => {
+  if (!req.session.user) {
+    res.status(401).json({ error: true, message: "NOT LOGGED IN" });
+    return;
+  } else {
+    next();
+  }
+};
 
-// // Passport Deserialize
-// passport.deserializeUser((id, done) => {
-//   models.User.findById(id, function(err, user) {
-//     done(null, user);
-//   });
-// });
+app.use(unless(["/", "/login", "/signup"], validateLoggedIn));
 
-// // Passport Strategy
-// passport.use(
-//   new LocalStrategy(function(email, password, done) {
-//finds user by email
-//   models.User.findOne({ email: email }, (err, user) => {
-//     //database error
-//     if (err) {
-//       console.log(err);
-//       return done(null, false);
-//     }
-//     //passwords dont match
-//     if (!user || user.password !== password) {
-//       console.log("passwords dont match");
-//       return done(null, false);
-//     }
-//     //defualt case
-//     //user._id
-//     //user.email
-//     //all the stuff we store in the database
-//     return done(null, user);
-//   });
-// })
-// );
+// POST registration page
+var validateReq = function(userData) {
+  return userData.password === userData.passwordRepeat;
+};
 
-app.use("/", auth(passport)); //how we are physically passing passport
+app.post("/signup", function(req, res) {
+  if (!validateReq(req.body)) {
+    return res.json({
+      error: true,
+      message: "Error on post request to sign up"
+    });
+  }
+  var u = new models.User({
+    // Note: Calling the email form field 'username' here is intentional,
+    // passport is expecting a form field specifically named 'username'.
+    // There is a way to change the name it expects, but this is fine.
+    email: req.body.email,
+    password: req.body.password,
+    displayName: req.body.displayName
+  });
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error("Not Found");
-  err.status = 404;
-  next(err);
+  u.save(function(err, user) {
+    if (err) {
+      console.log(err);
+      return res.json({ error: true, message: "Error saving to the database" });
+    }
+    res.json({ error: false, user: user });
+  });
 });
 
-// // development error handler
-// // will print stacktrace
-// if (app.get("env") === "development") {
-//   app.use(function(err, req, res, next) {
-//     res.status(err.status || 500);
-//     res.render("error", {
-//       message: err.message,
-//       error: err
-//     });
-//   });
-// }
+// POST Login page
 
-// // production error handler
-// // no stacktraces leaked to user
-// app.use(function(err, req, res, next) {
-//   res.status(err.status || 500);
-//   res.render("error", {
-//     message: err.message,
-//     error: {}
-//   });
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  models.User.findOne({ email: email }, (err, user) => {
+    //database error
+    if (err) {
+      console.log(err);
+      return res.status(401).json({
+        error: true,
+        message: "ERROR WHILE FINDING " + err
+      });
+    }
+    //passwords dont match
+    if (!user || user.password !== password) {
+      res.status(401);
+      console.log("passwords dont match");
+      return res.json({
+        error: true,
+        message: err
+      });
+    }
+
+    //all the stuff we store in the database
+    // sets the user on the session
+    req.session.user = user;
+    return res.json({
+      error: false
+    });
+  });
+});
+
+//ALREADY LOGGED IN ROUTE \\//
+app.get("/login", (req, res) => {
+  //user persistence
+  res.status(200).json({ error: false, isLogged: Boolean(req.session.user) });
+});
+
+// GET Logout page
+app.post("/logout", function(req, res, next) {
+  // lOGS USER OUT
+  if (req.session) {
+    req.session.destroy(err => {
+      if (err) {
+        return next(err);
+      } else {
+        return res.json({ success: true });
+      }
+    });
+  }
+});
+
+app.post("/docs/new", (req, res) => {
+  /////
+  var doc = new models.Document({
+    author: req.session.user._id,
+    collaborators: [req.session.user._id],
+    title: req.body.title,
+    password: req.body.password
+  });
+  doc.save((err, document) => {
+    //saves the documents to the database
+    if (err) {
+      console.log(err);
+      return res.status(401).json({ error: true, message: "ERROR WHILE SAVING DOCUMENT " + err });
+    }
+    //when saving we return with a json respresentation of the documents
+    res.json({ error: false, title: document.title, id: document._id });
+  });
+});
+
+app.post("/docs/shared", (req, res) => {
+  models.Document.findById(req.body.id, (err, document) => {
+    if (err) {
+      console.log(err);
+      return res.status(401).json({ error: true, message: "Invalid document ID" });
+    }
+    if (req.body.password === document.password) {
+      if (document.collaborators.includes(req.session.user._id)) {
+        res.json({ error: false, success: false, message: "Already a collaborator" });
+      } else {
+        res.json({ error: false, success: true, title: document.title, id: document._id });
+      }
+      // send the document title and id
+    } else {
+      res.json({ error: false, success: false, message: "Invalid document password" });
+    }
+  });
+});
+
+app.get("/docs", (req, res) => {
+  // Route that sends all the docs
+  models.Document.find({ collaborators: req.session.user._id }, (err, docs) => {
+    if (err) {
+      console.log("ERROR FINDING TH DOCS IN THE DATABASE");
+    }
+    //map through the docs and only get certain infromation \\//
+    docs = docs.map(document => {
+      return { title: document.title, id: document._id };
+    });
+    return res.status(200).json({ error: false, docs: docs });
+  });
+});
+
+// SOCKET BELOW \\// \\//
+io.on("connection", socket => {
+  console.log("test");
+});
+
+// app.use(function(req, res, next) {
+//   var err = new Error("Not Found");
+//   err.status = 404;
+//   next(err);
 // });
 
-// const port = process.env.port || 3000;
-// app.listen(port, function() {
-//   console.log("Listening on %s", port);
-// });
+const port = process.env.port || 3000;
+server.listen(port, function() {
+  console.log("Listening on %s", port);
+});
