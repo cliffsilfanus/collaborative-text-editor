@@ -8,7 +8,7 @@ import {
 	convertToRaw,
 	convertFromRaw
 } from 'draft-js';
-import '../css/TextEditor.css';
+import '../css/textEditor.css';
 import { Map } from 'immutable';
 import BACKEND from './Backend';
 
