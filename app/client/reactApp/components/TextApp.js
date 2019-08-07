@@ -1,34 +1,46 @@
-import React, { Component } from 'react';
-import Login from './Login';
-import Register from './Register';
-import DocumentPortal from './DocumentPortal';
-import TextEditor from './TextEditor';
-import { BrowserRouter, Route } from 'react-router-dom';
-import BACKEND from './Backend';
-import io from 'socket.io-client';
-
-const socket = io(BACKEND, { forceNew: true });
+import React, { Component } from "react";
+import Login from "./Login";
+import Register from "./Register";
+import DocumentPortal from "./DocumentPortal";
+import TextEditor from "./TextEditor";
+import { BrowserRouter, Route } from "react-router-dom";
+import BACKEND from "./Backend";
+import io from "socket.io-client";
 
 class TextApp extends Component {
-	render() {
-		return (
-			<BrowserRouter>
-				<Route path="/" exact component={Login} />
-				<Route path="/register" component={Register} />
-				<Route path="/docs" exact component={DocumentPortal} />
-				<Route
-					path="/docs/:id"
-					render={props => (
-						<TextEditor
-							id={props.match.params.id}
-							socket={socket}
-						/>
-					)}
-				/>
-			</BrowserRouter>
-		);
-		// return <TextEditor />;
-	}
+  constructor(props) {
+    super(props);
+    this.socket = null;
+  }
+
+  componentDidMount = () => {
+    this.socket = io(BACKEND, { forceNew: true });
+  };
+
+  componentWillUnmount = () => {
+    this.socket.disconnect(true);
+  };
+
+  render() {
+    return (
+      <BrowserRouter>
+        <Route path="/" exact component={Login} />
+        <Route path="/register" component={Register} />
+        <Route
+          path="/docs"
+          exact
+          render={() => <DocumentPortal socket={this.socket} />}
+        />
+        <Route
+          path="/docs/:docId"
+          render={props => (
+            <TextEditor docId={props.match.params.docId} socket={this.socket} />
+          )}
+        />
+      </BrowserRouter>
+    );
+    // return <TextEditor />;
+  }
 }
 
 export default TextApp;

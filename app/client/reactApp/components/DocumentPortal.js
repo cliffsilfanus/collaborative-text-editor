@@ -130,7 +130,8 @@ class DocumentPortal extends Component {
       });
   };
 
-  gotoDocument = () => {
+  gotoDocument = id => {
+    this.props.socket.emit("joinDoc", id);
     this.setState({ redirect: true });
   };
 
@@ -164,10 +165,15 @@ class DocumentPortal extends Component {
             <ul>
               {this.state.documents.map(document => {
                 return (
-                  <li key={document.id} onClick={this.gotoDocument}>
+                  <li
+                    key={document.id}
+                    onClick={() => this.gotoDocument(document.id)}
+                  >
                     <i className="icon fas fa-file-alt" />
                     {document.title}
-                    {this.state.redirect && <Redirect to={"/docs/" + document.id} />}
+                    {this.state.redirect && (
+                      <Redirect to={"/docs/" + document.id} />
+                    )}
                   </li>
                 );
               })}

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import '../css/Auth.css';
+import '../css/auth.css';
 import { Link, Redirect } from 'react-router-dom';
 import BACKEND from './Backend';
 
