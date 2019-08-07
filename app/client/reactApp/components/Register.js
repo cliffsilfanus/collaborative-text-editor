@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import '../css/Auth.css';
 import { Link, Redirect } from 'react-router-dom';
-
-const BACKEND = 'http://192.168.1.45:3000';
+import BACKEND from './Backend';
 
 class Register extends Component {
 	constructor(props) {
