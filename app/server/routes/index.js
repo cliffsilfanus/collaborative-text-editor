@@ -85,9 +85,6 @@ app.post("/signup", function(req, res) {
     });
   }
   var u = new models.User({
-    // Note: Calling the email form field 'username' here is intentional,
-    // passport is expecting a form field specifically named 'username'.
-    // There is a way to change the name it expects, but this is fine.
     email: req.body.email,
     password: req.body.password,
     displayName: req.body.displayName
@@ -156,7 +153,6 @@ app.post("/logout", function(req, res, next) {
 });
 
 app.post("/docs/new", (req, res) => {
-  /////
   var doc = new models.Document({
     author: req.session.user._id,
     collaborators: [req.session.user._id],
@@ -184,7 +180,19 @@ app.post("/docs/shared", (req, res) => {
       if (document.collaborators.includes(req.session.user._id)) {
         res.json({ error: false, success: false, message: "Already a collaborator" });
       } else {
-        res.json({ error: false, success: true, title: document.title, id: document._id });
+        document.collaborators.push(req.session.user._id);
+        document.save(err => {
+          if (err) {
+            res.status(401).json({ error: true, message: "Failed to add collaborator" });
+          } else {
+            res.json({
+              error: false,
+              success: true,
+              title: document.title,
+              id: document._id
+            });
+          }
+        });
       }
       // send the document title and id
     } else {
@@ -209,7 +217,17 @@ app.get("/docs", (req, res) => {
 
 // SOCKET BELOW \\// \\//
 io.on("connection", socket => {
-  console.log("test");
+  socket.on("joinDoc", id => {
+    socket.join(id);
+  });
+
+  socket.on("leaveDoc", id => {
+    socket.leave(id);
+  });
+
+  socket.on("changeDoc", ({ data, docId }) => {
+    io.to(docId).emit("changeDoc", data); // id = room , data = content
+  });
 });
 
 // app.use(function(req, res, next) {
