@@ -1,8 +1,7 @@
 import React, { Component } from "react";
 import "../css/Auth.css";
 import { Link, Redirect } from "react-router-dom";
-
-const BACKEND = "https://4c76b209.ngrok.io";
+import BACKEND from "./Backend";
 
 class Login extends Component {
   constructor(props) {

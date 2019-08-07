@@ -1,8 +1,7 @@
 import React, { Component } from "react";
 import { Redirect } from "react-router-dom";
 import "../css/documentPortal.css";
-
-const BACKEND = "https://613cbc44.ngrok.io";
+import BACKEND from "./Backend";
 
 class DocumentPortal extends Component {
   constructor() {
