@@ -225,8 +225,8 @@ io.on("connection", socket => {
     socket.leave(id);
   });
 
-  socket.on("changeDoc", ({ data, docId }) => {
-    io.to(docId).emit("changeDoc", data); // id = room , data = content
+  socket.on("changeDoc", ({ docId, data, selectData }) => {
+    io.to(docId).emit("changeDoc", { data, selectData }); // id = room , data = content
   });
 });
 
