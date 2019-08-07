@@ -40,10 +40,14 @@ export default class TextEditor extends Component {
       //   );
     };
     this.colorPicker = React.createRef();
+    this.changeDoc = data => {
+      this.setState({ editorState: EditorState.createWithContent(data) });
+    };
   }
 
   componentDidMount = () => {
-    console.log(this.props.docId);
+    // console.log(this.props.docId);
+    this.props.socket.on("changeDoc", this.changeDoc);
     // const test = convertFromRaw(
     // 	JSON.parse(
     // 		'{"blocks":[{"key":"50bv7","text":"abc","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":3,"style":"UNDERLINE"},{"offset":0,"length":3,"style":"color|#82ff70"}],"entityRanges":[],"data":{"alignment":"left"}}],"entityMap":{}}'
@@ -57,6 +61,7 @@ export default class TextEditor extends Component {
   };
 
   componentWillUnmount = () => {
+    this.props.removeListener("changeDoc", this.changeDoc);
     this.props.socket.emit("leaveDoc", this.props.docId);
   };
 
