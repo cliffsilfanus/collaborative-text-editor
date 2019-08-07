@@ -7,9 +7,20 @@ import { BrowserRouter, Route } from "react-router-dom";
 import BACKEND from "./Backend";
 import io from "socket.io-client";
 
-const socket = io(BACKEND, { forceNew: true });
-
 class TextApp extends Component {
+  constructor(props) {
+    super(props);
+    this.socket = null;
+  }
+
+  componentDidMount = () => {
+    this.socket = io(BACKEND, { forceNew: true });
+  };
+
+  componentWillUnmount = () => {
+    this.socket.disconnect(true);
+  };
+
   render() {
     return (
       <BrowserRouter>
@@ -18,12 +29,12 @@ class TextApp extends Component {
         <Route
           path="/docs"
           exact
-          render={() => <DocumentPortal socket={socket} />}
+          render={() => <DocumentPortal socket={this.socket} />}
         />
         <Route
           path="/docs/:docId"
           render={props => (
-            <TextEditor docId={props.match.params.docId} socket={socket} />
+            <TextEditor docId={props.match.params.docId} socket={this.socket} />
           )}
         />
       </BrowserRouter>
