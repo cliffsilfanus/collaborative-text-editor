@@ -248,8 +248,22 @@ io.on("connection", socket => {
       if (err) {
         console.log("ERROR FINDING THE DOCUMENT WHEN TRYING TO LOAD");
       } else {
-        socket.emit("loadDoc", document.content);
+        socket.emit("loadDoc", { title: document.title, content: document.content });
         // send the document content //\\
+      }
+    });
+  });
+  socket.on("editTitle", ({ id, title }) => {
+    models.Document.findById(id, (err, document) => {
+      if (err) {
+        console.log("ERROR FINDING THE DOCUMENT WHEN CHANGING TITLE ");
+      } else {
+        document.title = title;
+        document.save(err => {
+          if (err) {
+            console.log("ERROR SAVING THE DOCUMENTS NEW TITLE", err);
+          }
+        });
       }
     });
   });
