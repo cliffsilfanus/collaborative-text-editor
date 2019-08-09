@@ -33,7 +33,8 @@ export default class TextEditor extends Component {
 			selectionIsItalic: false,
 			selectionIsUnderline: false,
 			selectionColor: '#ffffff',
-			selectionFontSize: 16
+			selectionFontSize: 16,
+			selectionFont: 'System UI'
 		};
 
 		this.onChange = editorState => {
@@ -54,11 +55,17 @@ export default class TextEditor extends Component {
 			currSelect = currSelect.merge(JSON.parse(selectData));
 			currState = EditorState.acceptSelection(currState, currSelect);
 			const inlineStyle = currState.getCurrentInlineStyle();
-			const checkSize = inlineStyle.toJS();
+			const checkStyle = inlineStyle.toJS();
 			let fontSize;
-			for (let i = 0; i < checkSize.length; i++) {
-				if (checkSize[i].startsWith('size|')) {
-					fontSize = checkSize[i].slice(5);
+			for (let i = 0; i < checkStyle.length; i++) {
+				if (checkStyle[i].startsWith('size|')) {
+					fontSize = checkStyle[i].slice(5);
+				}
+			}
+			let font;
+			for (let i = 0; i < checkStyle.length; i++) {
+				if (checkStyle[i].startsWith('font|')) {
+					font = checkStyle[i].slice(5);
 				}
 			}
 			this.setState({
@@ -66,7 +73,8 @@ export default class TextEditor extends Component {
 				selectionIsBold: inlineStyle.has('BOLD'),
 				selectionIsItalic: inlineStyle.has('ITALIC'),
 				selectionIsUnderline: inlineStyle.has('UNDERLINE'),
-				selectionFontSize: fontSize || 16
+				selectionFontSize: fontSize || 16,
+				selectionFont: font || 'System UI'
 			});
 		};
 
@@ -75,7 +83,10 @@ export default class TextEditor extends Component {
 				const content = JSON.stringify(
 					convertToRaw(this.state.editorState.getCurrentContent())
 				);
-				props.socket.emit('saveDoc', { id: this.props.docId, content });
+				props.socket.emit('saveDoc', {
+					id: this.props.docId,
+					content
+				});
 				return 'handled';
 			}
 			return 'not-handled';
@@ -98,7 +109,6 @@ export default class TextEditor extends Component {
 	}
 
 	componentDidMount = () => {
-		// console.log(this.props.docId);
 		this.props.socket.emit('loadDoc', this.props.docId);
 		this.props.socket.on('changeDoc', this.changeDoc);
 		this.props.socket.on('loadDoc', this.loadDoc);
@@ -162,7 +172,9 @@ export default class TextEditor extends Component {
 	}
 
 	_changeFontSize(size) {
-		this.setState({ selectionFontSize: size });
+		this.setState({
+			selectionFontSize: size
+		});
 		const { editorState } = this.state;
 		const currentContent = editorState.getCurrentContent();
 		const currentSelection = editorState.getSelection();
@@ -179,6 +191,37 @@ export default class TextEditor extends Component {
 			removedSizeContent,
 			currentSelection,
 			`size|${size}`
+		);
+
+		this.onChange(
+			EditorState.push(
+				editorState,
+				nextContentState,
+				'change-inline-style'
+			)
+		);
+	}
+
+	_changeFont(font) {
+		this.setState({
+			selectionFont: font
+		});
+		const { editorState } = this.state;
+		const currentContent = editorState.getCurrentContent();
+		const currentSelection = editorState.getSelection();
+
+		const removedFontContent = removeInlineStyle(
+			currentContent,
+			currentSelection,
+			style => {
+				return style.startsWith('font|');
+			}
+		);
+
+		const nextContentState = Modifier.applyInlineStyle(
+			removedFontContent,
+			currentSelection,
+			`font|${font}`
 		);
 
 		this.onChange(
@@ -224,7 +267,37 @@ export default class TextEditor extends Component {
 	}
 
 	render() {
-		const sizeList = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 30, 36, 48, 60];
+		const sizeList = [
+			8,
+			9,
+			10,
+			11,
+			12,
+			14,
+			16,
+			18,
+			20,
+			24,
+			30,
+			36,
+			48,
+			60,
+			72,
+			96
+		];
+		const fontList = [
+			'Arial',
+			'Comic Sans MS',
+			'Courier',
+			'Georgia',
+			'Helvetica',
+			'Impact',
+			'System UI',
+			'Times New Roman',
+			'Times',
+			'Trebuchet MS',
+			'Verdana'
+		];
 		return (
 			<div className="main">
 				<div className="navbar">
@@ -289,7 +362,9 @@ export default class TextEditor extends Component {
 						/>
 						<input
 							type="color"
-							style={{ display: 'none' }}
+							style={{
+								display: 'none'
+							}}
 							value={this.state.selectionColor}
 							onChange={e => this._toggleColor(e.target.value)}
 							ref={this.colorPicker}
@@ -317,13 +392,19 @@ export default class TextEditor extends Component {
 							onClick={() => this._toggleList('ordered')}
 						/>
 						<div className="verticalLine" />
-						{/* <input
-							type="number"
-							placeholder="Font Size"
-							size="20"
-							value={this.state.selectionFontSize}
-							onChange={e => this._changeFontSize(e.target.value)}
-                        /> */}
+						<div className="fontSelect">
+							<select
+								onChange={e => this._changeFont(e.target.value)}
+								value={this.state.selectionFont}
+							>
+								{fontList.map(font => (
+									<option key={font} value={font}>
+										{font}
+									</option>
+								))}
+							</select>
+						</div>
+						<div className="verticalLine" />
 						<div className="fontSelect">
 							<select
 								onChange={e =>
@@ -351,11 +432,19 @@ export default class TextEditor extends Component {
 								style.forEach(a => {
 									const colors = a.match(/^color\|(.*)/);
 									const sizes = a.match(/^size\|(.*)/);
+									const fonts = a.match(/^font\|(.*)/);
 									if (colors) {
 										styles.color = colors[1];
 									}
 									if (sizes) {
 										styles.fontSize = sizes[1] + 'px';
+									}
+									if (fonts) {
+										if (fonts[1] === 'System UI') {
+											styles.fontFamily = 'system-ui';
+										} else {
+											styles.fontFamily = fonts[1];
+										}
 									}
 								});
 								return styles;

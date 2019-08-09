@@ -94,3 +94,18 @@ textarea {
 .fontSelect {
 	padding: 0px 5px;
 }
+
+.fontSelect select {
+	border: none;
+	background-color: transparent;
+	height: 20px;
+	outline: none;
+}
+
+.fontSelect select:hover {
+	background-color: #f1f3f4;
+}
+
+/* .fontSelect select:focus {
+
+} */
