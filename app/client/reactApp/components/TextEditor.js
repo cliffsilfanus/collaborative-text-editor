@@ -7,14 +7,25 @@ import {
 	CharacterMetadata,
 	convertToRaw,
 	convertFromRaw,
-	SelectionState
+	SelectionState,
+	getDefaultKeyBinding,
+	KeyBindingUtil
 } from 'draft-js';
+const { hasCommandModifier } = KeyBindingUtil;
 import '../css/textEditor.css';
 import { Map } from 'immutable';
+
+const saveBinding = e => {
+	if (hasCommandModifier(e) && e.keyCode === 83) {
+		return 'save';
+	}
+	return getDefaultKeyBinding(e);
+};
 
 export default class TextEditor extends Component {
 	constructor(props) {
 		super(props);
+
 		this.state = {
 			documentName: '',
 			editorState: EditorState.createEmpty(),
@@ -22,8 +33,9 @@ export default class TextEditor extends Component {
 			selectionIsItalic: false,
 			selectionIsUnderline: false,
 			selectionColor: '#ffffff',
-			selectionFontSize: 18
+			selectionFontSize: 16
 		};
+
 		this.onChange = editorState => {
 			props.socket.emit('changeDoc', {
 				docId: props.docId,
@@ -32,60 +44,90 @@ export default class TextEditor extends Component {
 				),
 				selectData: JSON.stringify(editorState.getSelection())
 			});
-			//   let inlineStyle = editorState.getCurrentInlineStyle();
-			//   this.setState({
-			//     editorState,
-			//     selectionIsBold: inlineStyle.has("BOLD"),
-			//     selectionIsItalic: inlineStyle.has("ITALIC"),
-			//     selectionIsUnderline: inlineStyle.has("UNDERLINE")
-			//   });
-			//   console.log(
-			//     JSON.stringify(convertToRaw(editorState.getCurrentContent()))
-			//   );
 		};
-		this.colorPicker = React.createRef();
+
 		this.changeDoc = ({ data, selectData }) => {
-			const currState = EditorState.createWithContent(
+			let currState = EditorState.createWithContent(
 				convertFromRaw(JSON.parse(data))
 			);
 			let currSelect = SelectionState.createEmpty();
 			currSelect = currSelect.merge(JSON.parse(selectData));
+			currState = EditorState.acceptSelection(currState, currSelect);
+			const inlineStyle = currState.getCurrentInlineStyle();
+			const checkSize = inlineStyle.toJS();
+			let fontSize;
+			for (let i = 0; i < checkSize.length; i++) {
+				if (checkSize[i].startsWith('size|')) {
+					fontSize = checkSize[i].slice(5);
+				}
+			}
 			this.setState({
-				editorState: EditorState.forceSelection(currState, currSelect)
+				editorState: currState,
+				selectionIsBold: inlineStyle.has('BOLD'),
+				selectionIsItalic: inlineStyle.has('ITALIC'),
+				selectionIsUnderline: inlineStyle.has('UNDERLINE'),
+				selectionFontSize: fontSize || 16
 			});
 		};
+
+		this.handleKeyCommand = command => {
+			if (command === 'save') {
+				const content = JSON.stringify(
+					convertToRaw(this.state.editorState.getCurrentContent())
+				);
+				props.socket.emit('saveDoc', { id: this.props.docId, content });
+				return 'handled';
+			}
+			return 'not-handled';
+		};
+
+		this.loadDoc = ({ title, content }) => {
+			if (content) {
+				const currState = EditorState.createWithContent(
+					convertFromRaw(JSON.parse(content))
+				);
+				this.setState({
+					editorState: currState,
+					documentName: title
+				});
+			}
+		};
+
+		this.colorPicker = React.createRef();
+		this.saveInterval = null;
 	}
 
 	componentDidMount = () => {
 		// console.log(this.props.docId);
+		this.props.socket.emit('loadDoc', this.props.docId);
 		this.props.socket.on('changeDoc', this.changeDoc);
-		// const test = convertFromRaw(
-		// 	JSON.parse(
-		// 		'{"blocks":[{"key":"50bv7","text":"abc","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":3,"style":"UNDERLINE"},{"offset":0,"length":3,"style":"color|#82ff70"}],"entityRanges":[],"data":{"alignment":"left"}}],"entityMap":{}}'
-		// 	)
-		// );
-		// console.log(test);
-		// this.setState({
-		// 	editorState: EditorState.createWithContent(test)
-		// });
-		// console.log(convertToRaw(this.state.editorState.getCurrentContent()));
+		this.props.socket.on('loadDoc', this.loadDoc);
+		if (!this.saveInterval) {
+			this.saveInterval = setInterval(() => {
+				const content = JSON.stringify(
+					convertToRaw(this.state.editorState.getCurrentContent())
+				);
+				this.props.socket.emit('saveDoc', {
+					id: this.props.docId,
+					content
+				});
+			}, 30 * 1000);
+		}
 	};
 
 	componentWillUnmount = () => {
 		this.props.removeListener('changeDoc', this.changeDoc);
 		this.props.socket.emit('leaveDoc', this.props.docId);
+		if (this.saveInterval) {
+			clearInterval(this.saveInterval);
+			this.saveInterval = null;
+		}
 	};
 
 	_onInlineClick(style) {
 		this.onChange(
 			RichUtils.toggleInlineStyle(this.state.editorState, style)
 		);
-		// let inlineStyle = this.state.editorState.getCurrentInlineStyle();
-		// this.setState({
-		//   selectionIsBold: inlineStyle.has("BOLD"),
-		//   selectionIsItalic: inlineStyle.has("ITALIC"),
-		//   selectionIsUnderline: inlineStyle.has("UNDERLINE")
-		// });
 	}
 
 	_toggleList(type) {
@@ -132,6 +174,20 @@ export default class TextEditor extends Component {
 				return style.startsWith('size|');
 			}
 		);
+
+		const nextContentState = Modifier.applyInlineStyle(
+			removedSizeContent,
+			currentSelection,
+			`size|${size}`
+		);
+
+		this.onChange(
+			EditorState.push(
+				editorState,
+				nextContentState,
+				'change-inline-style'
+			)
+		);
 	}
 
 	_toggleColor(color) {
@@ -139,8 +195,6 @@ export default class TextEditor extends Component {
 		const { editorState } = this.state;
 		const currentContent = editorState.getCurrentContent();
 		const currentSelection = editorState.getSelection();
-
-		// console.log(currentContent.toJS());
 
 		const removedColorsContent = removeInlineStyle(
 			currentContent,
@@ -170,16 +224,25 @@ export default class TextEditor extends Component {
 	}
 
 	render() {
+		const sizeList = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 30, 36, 48, 60];
 		return (
 			<div className="main">
 				<div className="navbar">
-					<textarea
+					<input
 						className="documentName"
 						placeholder="Untitled document"
-						rows="1"
+						type="text"
 						onChange={e =>
-							this.setState({ documentName: e.target.value })
+							this.setState({
+								documentName: e.target.value
+							})
 						}
+						onBlur={e => {
+							this.props.socket.emit('editTitle', {
+								id: this.props.docId,
+								title: e.target.value
+							});
+						}}
 						value={this.state.documentName}
 					/>
 					<hr />
@@ -254,13 +317,27 @@ export default class TextEditor extends Component {
 							onClick={() => this._toggleList('ordered')}
 						/>
 						<div className="verticalLine" />
-						<input
+						{/* <input
 							type="number"
 							placeholder="Font Size"
 							size="20"
 							value={this.state.selectionFontSize}
 							onChange={e => this._changeFontSize(e.target.value)}
-						/>
+                        /> */}
+						<div className="fontSelect">
+							<select
+								onChange={e =>
+									this._changeFontSize(e.target.value)
+								}
+								value={this.state.selectionFontSize}
+							>
+								{sizeList.map(size => (
+									<option key={size} value={size}>
+										{size}
+									</option>
+								))}
+							</select>
+						</div>
 					</ul>
 					<hr />
 				</div>
@@ -270,30 +347,27 @@ export default class TextEditor extends Component {
 							editorState={this.state.editorState}
 							textAlignment={this.state.currentTextAlignment}
 							customStyleFn={(style, block) => {
-								// console.log("custom fn", style.toJS(), block.toJS());
 								let styles = {};
 								style.forEach(a => {
-									const matches = a.match(/^color\|(.*)/);
-									// console.log("matches", matches);
-									if (matches) {
-										styles.color = matches[1];
+									const colors = a.match(/^color\|(.*)/);
+									const sizes = a.match(/^size\|(.*)/);
+									if (colors) {
+										styles.color = colors[1];
+									}
+									if (sizes) {
+										styles.fontSize = sizes[1] + 'px';
 									}
 								});
-								// console.log("styles:", styles);
 								return styles;
 							}}
 							blockStyleFn={this.myBlockStyleFn}
-							onChange={this.onChange}
+							onChange={test => this.onChange(test)}
+							handleKeyCommand={this.handleKeyCommand}
+							keyBindingFn={saveBinding}
 						/>
 					</div>
 				</div>
 			</div>
-
-			//   <div className="content-area">
-			//       <div className="content">
-
-			//       </div>
-			//   </div>
 		);
 	}
 }

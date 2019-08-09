@@ -1,42 +1,42 @@
 {
-  "name": "collaborative-text-editor",
-  "version": "1.0.0",
-  "description": "A Desktop app that allows you to edit documents collaboratively.",
-  "main": "app.js",
-  "scripts": {
-    "app": "electron app",
-    "webpack": "webpack",
-    "dev": "webpack-dev-server --content-base build/"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cliffsilfanus/collaborative-text-editor.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/cliffsilfanus/collaborative-text-editor/issues"
-  },
-  "homepage": "https://github.com/cliffsilfanus/collaborative-text-editor#readme",
-  "dependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
-    "@babel/preset-react": "^7.0.0",
-    "babel-loader": "^8.0.6",
-    "draft-js": "^0.11.0",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6",
-    "react-router-dom": "^5.0.1",
-    "socket.io-client": "^2.2.0",
-    "webpack": "^4.36.1"
-  },
-  "devDependencies": {
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "css-loader": "^3.1.0",
-    "electron": "^6.0.0",
-    "nodemon": "^1.19.1",
-    "style-loader": "^0.23.1",
-    "webpack-cli": "^3.3.6",
-    "webpack-dev-server": "^3.1.4"
-  }
+	"name": "collaborative-text-editor",
+	"version": "1.0.0",
+	"description": "A Desktop app that allows you to edit documents collaboratively.",
+	"main": "electron.js",
+	"scripts": {
+		"app": "electron .",
+		"webpack": "webpack",
+		"dev": "webpack-dev-server --content-base build/"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/cliffsilfanus/collaborative-text-editor.git"
+	},
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/cliffsilfanus/collaborative-text-editor/issues"
+	},
+	"homepage": "https://github.com/cliffsilfanus/collaborative-text-editor#readme",
+	"dependencies": {
+		"@babel/core": "^7.5.5",
+		"@babel/preset-env": "^7.5.5",
+		"@babel/preset-react": "^7.0.0",
+		"babel-loader": "^8.0.6",
+		"draft-js": "^0.11.0",
+		"react": "^16.8.6",
+		"react-dom": "^16.8.6",
+		"react-router-dom": "^5.0.1",
+		"socket.io-client": "^2.2.0",
+		"webpack": "^4.36.1"
+	},
+	"devDependencies": {
+		"babel-plugin-transform-class-properties": "^6.24.1",
+		"css-loader": "^3.1.0",
+		"electron": "^6.0.0",
+		"nodemon": "^1.19.1",
+		"style-loader": "^0.23.1",
+		"webpack-cli": "^3.3.6",
+		"webpack-dev-server": "^3.1.4"
+	}
 }
