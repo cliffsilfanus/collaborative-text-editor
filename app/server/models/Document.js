@@ -23,7 +23,7 @@ var documentSchema = new mongoose.Schema({
   },
   content: {
     type: String,
-    required: false
+    default: ""
   }
 });
 

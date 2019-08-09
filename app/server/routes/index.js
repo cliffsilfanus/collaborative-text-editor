@@ -228,6 +228,31 @@ io.on("connection", socket => {
   socket.on("changeDoc", ({ docId, data, selectData }) => {
     io.to(docId).emit("changeDoc", { data, selectData }); // id = room , data = content
   });
+
+  socket.on("saveDoc", ({ content, id }) => {
+    models.Document.findById(id, (err, document) => {
+      if (err) {
+        console.log("ERROR FINDING THE DOCUMENT");
+      } else {
+        document.content = content;
+        document.save(err => {
+          if (err) {
+            console.log("ERROR SAVING THE DOCUMENT");
+          }
+        });
+      }
+    });
+  });
+  socket.on("loadDoc", id => {
+    models.Document.findById(id, (err, document) => {
+      if (err) {
+        console.log("ERROR FINDING THE DOCUMENT WHEN TRYING TO LOAD");
+      } else {
+        socket.emit("loadDoc", document.content);
+        // send the document content //\\
+      }
+    });
+  });
 });
 
 // app.use(function(req, res, next) {
