@@ -1,2 +1,2 @@
-const BACKEND = "https://3551f455.ngrok.io";
+const BACKEND = "https://0c270e75.ngrok.io";
 export default BACKEND;
